@@ -1,36 +1,12 @@
-# Install
 
-```
+This is a Decentralized Auction site example for the Celo Challenge on Dacade (  here : [https://dacade.org/communities/celo-development-101](https://dacade.org/communities/celo-development-101).
 
-npm install
+owner can add object to sell, and bidder can put a put.
+When the 7 days period is over, the owner can close the auction, and get the highest bid.
+Unlucky bidders can get their bid back at any time.
 
-```
 
-or 
+Deployed version of the site : 
+[https://alocaly.github.io/DecAuction/](https://alocaly.github.io/DecAuction/)
 
-```
 
-yarn install
-
-```
-
-# Start
-
-```
-
-npm run dev
-
-```
-
-# Build
-
-```
-
-npm run build
-
-```
-# Usage
-1. Install the [CeloExtensionWallet](https://chrome.google.com/webstore/detail/celoextensionwallet/kkilomkmpmkbdnfelcpgckmpcaemjcdh?hl=en) from the google chrome store.
-2. Create a wallet.
-3. Go to [https://celo.org/developers/faucet](https://celo.org/developers/faucet) and get tokens for the alfajores testnet.
-4. Switch to the alfajores testnet in the CeloExtensionWallet.
