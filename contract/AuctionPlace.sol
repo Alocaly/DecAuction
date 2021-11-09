@@ -21,22 +21,36 @@ contract AuctionPlace {
 
     struct Item {
         address payable owner;
+        address payable highestBidder;
         string name;
         string image;
         string description;
         string location;
         uint initialPrice;
         uint highestBid;
-        address payable highestBidder;
         uint endDate;
+        bool isOpen;
     }
 
     mapping (uint => Item) internal items;
     
-    uint[] internal openAuctions;
-
     mapping( address => uint ) internal unsuccessfullBidValue;
-
+    
+    modifier isOpen (uint index){
+        // ensures that an auction is still open
+        
+        require(items[index].isOpen, "invalid open auctionn Id");
+        _;
+    
+    }
+    
+    modifier ensureHigherBid (uint _index, uint _newPrice){
+        // ensures that a new bid is hiogher than existing ones
+        require( _newPrice > items[_index].initialPrice, "need a higher bid");
+        require( _newPrice > items[_index].highestBid, "need a higher bid");
+        _;
+    }
+    
     function addItem(
         string memory _name,
         string memory _image,
@@ -46,23 +60,23 @@ contract AuctionPlace {
     ) public {
         items[nbItems] = Item(
             payable(msg.sender),
+            payable(msg.sender),
             _name,
             _image,
             _description,
             _location,
             _initialPrice,
             0,
-            payable(msg.sender),
-            block.timestamp + 7 days
+            block.timestamp + 7 days,
+            true
         );
-        openAuctions.push( nbItems );
+  
         nbItems++;
     }
     
-    function closeAuctionAndSendItem( uint _auctionNum) public
+    function closeAuctionAndSendItem( uint _index) isOpen(_index) public
     {
-        require( _auctionNum < openAuctions.length, "invalid open auctionn Id");
-        uint _index = openAuctions[ _auctionNum ];
+        
         require( msg.sender == items[_index].owner, "only the owner can close the auction");
         require(block.timestamp > items[_index].endDate, "This auction is not ended yet");
         
@@ -79,10 +93,14 @@ contract AuctionPlace {
         }
         
         // remove the auction from the open ones :
-        openAuctions[ _auctionNum ] = openAuctions[ openAuctions.length - 1 ];
-        openAuctions.pop();
+        items[_index].isOpen = false;
     }
-
+    
+    
+    function isAuctionOpen(uint _index) public view returns (bool){
+        return items[_index].isOpen;
+    }
+    
     function getItemDesc(uint _index) public view returns (
         string memory, 
         string memory, 
@@ -111,12 +129,14 @@ contract AuctionPlace {
             items[_index].endDate
             );
     }
+    
+    function getItemLength() public view returns (uint){
+        return nbItems;
+    }
 
-    function addBid(uint _auctionNum, uint _newPrice) public payable  {
-        require( _auctionNum < openAuctions.length, "invalid open auctionn Id");
-        uint _index = openAuctions[ _auctionNum ];
-        require( _newPrice > items[_index].initialPrice, "need a higher bid");
-        require( _newPrice > items[_index].highestBid, "need a higher bid");
+    function addBid(uint _index, uint _newPrice) public payable isOpen(_index) ensureHigherBid(_index, _newPrice) {
+      
+        
         require( msg.sender != items[_index].owner, "can't bid for your own auction");
         require( msg.sender != items[_index].highestBidder, "already the biggest bid");
         require(block.timestamp < items[_index].endDate, "This auction is done");
@@ -136,27 +156,7 @@ contract AuctionPlace {
         items[_index].highestBidder = payable(msg.sender);
     }
     
-    function getOpenAuctionNb() public view returns (uint) {
-        return openAuctions.length;
-    }
-    function getItemDescFromAuctionNum( uint _auctionNum ) public view returns (
-        string memory, 
-        string memory, 
-        string memory, 
-        string memory 
-    )
-    {
-        return getItemDesc( openAuctions[ _auctionNum ] );
-    }
-    function getItemBidFromAuctionNum( uint _auctionNum ) public view returns (
-        address payable,
-        uint,
-        uint,
-        address payable,
-        uint)
-    {
-        return getItemBid( openAuctions[ _auctionNum ] );
-    }
+
     function getUnsuccessfulBidAmount() public view returns(uint)
     {
         return unsuccessfullBidValue[ msg.sender];
@@ -173,4 +173,24 @@ contract AuctionPlace {
         );
         unsuccessfullBidValue[msg.sender] = 0;
     }
+    
+    
+    // function getItemDescFromAuctionNum( uint _auctionNum ) public view returns (
+    //     string memory, 
+    //     string memory, 
+    //     string memory, 
+    //     string memory 
+    // )
+    // {
+    //     return getItemDesc( openAuctions[ _auctionNum ] );
+    // }
+    // function getItemBidFromAuctionNum( uint _auctionNum ) public view returns (
+    //     address payable,
+    //     uint,
+    //     uint,
+    //     address payable,
+    //     uint)
+    // {
+    //     return getItemBid( openAuctions[ _auctionNum ] );
+    // }
 }

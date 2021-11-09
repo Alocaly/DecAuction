@@ -83,12 +83,13 @@ const connectCeloWallet = async function () {
   }
 
   const getAuctions = async function() {
-    const _auctionLength = await contract.methods.getOpenAuctionNb().call()
+    const _auctionLength = await contract.methods.getItemLength().call()
     const _openAuctions = []
     for (let i = 0; i < _auctionLength; i++) {
+        if (await contract.methods.isAuctionOpen(i).call()){
         let _auction = new Promise(async (resolve, reject) => {
-          let req1 = await contract.methods.getItemDescFromAuctionNum(i).call()
-          let req2 = await contract.methods.getItemBidFromAuctionNum(i).call()
+          let req1 = await contract.methods.getItemDesc(i).call()
+          let req2 = await contract.methods.getItemBid(i).call()
           resolve({
             index: i,
             owner: req2[0],
@@ -102,6 +103,8 @@ const connectCeloWallet = async function () {
           })
         })
         _openAuctions.push(_auction)
+
+      }
       }
       OpenAuctions = await Promise.all(_openAuctions)
       renderAuctions()
