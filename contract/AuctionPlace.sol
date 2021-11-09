@@ -95,7 +95,12 @@ contract AuctionPlace {
         // remove the auction from the open ones :
         items[_index].isOpen = false;
     }
-
+    
+    
+    function isAuctionOpen(uint _index) public view returns (bool){
+        return items[_index].isOpen;
+    }
+    
     function getItemDesc(uint _index) public view returns (
         string memory, 
         string memory, 
@@ -124,8 +129,12 @@ contract AuctionPlace {
             items[_index].endDate
             );
     }
+    
+    function getItemLength() public view returns (uint){
+        return nbItems;
+    }
 
-    function addBid(uint _index, uint _newPrice) public payable isOpen(_index) ensureHigherBid  {
+    function addBid(uint _index, uint _newPrice) public payable isOpen(_index) ensureHigherBid(_index, _newPrice) {
       
         
         require( msg.sender != items[_index].owner, "can't bid for your own auction");
